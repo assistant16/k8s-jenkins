@@ -1,10 +1,12 @@
-FROM golang:alpine AS build-env
-RUN mkdir /go/src/app && apk update && apk add git
-ADD main.go /go/src/app/
-WORKDIR /go/src/app
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o app .
+FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
 
-FROM scratch
 WORKDIR /app
-COPY --from=build-env /go/src/app/app .
-ENTRYPOINT [ "./app" ]
+ADD . /app/
+
+EXPOSE 3000
+
+RUN dotnet build
+
+WORKDIR /app/Core.Application/
+
+ENTRYPOINT ["dotnet", "run", "Core.Application.dll"]
